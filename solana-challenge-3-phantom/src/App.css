@@ -1,0 +1,45 @@
+body {
+  background-color: #282c34;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-header {
+  min-height: 10vh;
+}
+
+.item-list {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-left: auto;
+  width: 40vw;
+}
+
+.wrap-content {
+  text-align: center;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-button {
+  font-size: 16px;
+  padding: 15px;
+  font-weight: bold;
+  border-radius: 5px;
+  width: 200px;
+  height: 70px;
+  cursor: pointer;
+  transition: .5s;
+}
+
+.connect:hover {
+  background-color: rgb(183, 244, 255);
+}
+
+.disconnect:hover {
+  background-color: rgb(255, 183, 183);
+}

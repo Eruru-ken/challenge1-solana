@@ -7,6 +7,9 @@ const {
   LAMPORTS_PER_SOL
 } = require("@solana/web3.js");
 
+let args = process.argv.slice(2);
+console.log(args[0]);
+
 // 公開鍵と秘密鍵のペアを生成する
 const newPair = new Keypair();
 
@@ -24,12 +27,11 @@ const getWalletBalance = async () => {
   try {
     // 接続するネットを選択
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-    console.log("Connection object is:", connection);
 
     // 作成したキーペアから残高を取得する
     const myWallet = await Keypair.fromSecretKey(privateKey);
     const walletBalance = await connection.getBalance(
-      new PublicKey(newPair.publicKey)
+      new PublicKey(args[0])
     );
     console.log(`Wallet balance: ${parseInt(walletBalance) / LAMPORTS_PER_SOL} SOL`);
   } catch (err) {
@@ -46,7 +48,8 @@ const airDropSol = async () => {
     // エアドロする。単位はLAMPORTSで1solにするには 1 * 10000000
     console.log("Airdropping some SOL to my wallet!");
     const fromAirDropSignature = await connection.requestAirdrop(
-      new PublicKey(myWallet.publicKey),
+      // new PublicKey(myWallet._keypair.publicKey),
+      new PublicKey(args[0]),
       2 * LAMPORTS_PER_SOL
     );
     await connection.confirmTransaction(fromAirDropSignature);

@@ -79,15 +79,13 @@ const transferSol = async () => {
   console.log('Signature is ', signature);
 
   // 送信者のウォレット残高
-  console.log("送信者");
   getWalletBalance(connection, DEMO_FROM_PUBLIC_FUNC);
 
-  console.log("受信者");
   getWalletBalance(connection, to.publicKey);
 }
 
 // プライベートキーから残高を取得
-async function getWalletBalance(connection, pubkey) {
+async function getWalletBalance(connection, pubkey, user) {
   try {
     // 作成したキーペアから残高を取得する
     const walletBalance = await connection.getBalance(
