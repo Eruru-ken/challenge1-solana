@@ -1,4 +1,4 @@
-// Import Solana web3 functinalities
+// 必要なモジュールをインポート
 const {
   Connection,
   PublicKey,
@@ -7,41 +7,25 @@ const {
   LAMPORTS_PER_SOL,
   Transaction,
   SystemProgram,
-  sendAndConfirmRawTransaction,
   sendAndConfirmTransaction
 } = require("@solana/web3.js");
 
-// キーペアを生成
-const keypair = new Keypair();
-
-const DEMO_FROM_SECRET_KEY = keypair._keypair.secretKey;
-const DEMO_FROM_SECRET_FUNC = keypair.secretKey;
-const DEMO_FROM_PUBLIC_KEY = keypair._keypair.publicKey;
-const DEMO_FROM_PUBLIC_FUNC = keypair.publicKey;
-
-// const DEMO_FROM_SECRET_KEY = new Uint8Array(
-//   [
-//     160, 20, 189, 212, 129, 188, 171, 124, 20, 179, 80,
-//     27, 166, 17, 179, 198, 234, 36, 113, 87, 0, 46,
-//     186, 250, 152, 137, 244, 15, 86, 127, 77, 97, 170,
-//     44, 57, 126, 115, 253, 11, 60, 90, 36, 135, 177,
-//     185, 231, 46, 155, 62, 164, 128, 225, 101, 79, 69,
-//     101, 154, 24, 58, 214, 219, 238, 149, 86
-//   ]
-// );
 
 const transferSol = async () => {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  // Get Keypair from Secret Key
-  var from = Keypair.fromSecretKey(DEMO_FROM_SECRET_KEY);
+  // キーペアを生成
+  const keypair = new Keypair();
+  // 秘密鍵からキーペアを取得
+  let from = Keypair.fromSecretKey(keypair.secretKey);
 
   // 受信者のキーペアを生成
   const to = Keypair.generate();
 
-  getWalletBalance(connection, DEMO_FROM_PUBLIC_FUNC);
+  // 残高を表示
+  dispWalletBalance(connection, from.publicKey, to.publicKey);
 
-  // エアドロップ
+  // 2SOLをエアドロップ
   console.log("Airdopping some SOL to Sender wallet!");
   const fromAirDropSignature = await connection.requestAirdrop(
     new PublicKey(from.publicKey),
@@ -61,37 +45,60 @@ const transferSol = async () => {
 
   console.log("Airdrop completed for the Sender account");
 
+  // エアドロ後の残高を取得
+  let fromBalance = await getWalletBalance(connection, from.publicKey);
+
   // Send money from "from" wallet and into "to" wallet
-  var transaction = new Transaction().add(
+  let transaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: from.publicKey,
       toPubkey: to.publicKey,
-      lamports: 1 * LAMPORTS_PER_SOL
+      lamports: fromBalance  / 2
     })
   );
 
   // Sign transaction
-  var signature = await sendAndConfirmTransaction(
+  let signature = await sendAndConfirmTransaction(
     connection,
     transaction,
     [from]
   );
   console.log('Signature is ', signature);
 
-  // 送信者のウォレット残高
-  getWalletBalance(connection, DEMO_FROM_PUBLIC_FUNC);
-
-  getWalletBalance(connection, to.publicKey);
+  // 残高を表示
+  dispWalletBalance(connection, from.publicKey, to.publicKey);
 }
 
-// プライベートキーから残高を取得
-async function getWalletBalance(connection, pubkey, user) {
+
+/**
+ * 送り主・受け取り主の残高を表示
+ * 
+ * @param {*} connection コネクション情報
+ * @param {String} senderPubKey 送り主公開鍵
+ * @param {String} reciverPubKey 受け取り主公開鍵
+ */
+async function dispWalletBalance(connection, senderPubKey, reciverPubKey){
+  let senderWalletBalance = await getWalletBalance(connection, senderPubKey);
+  let reciverWalletBalance = await getWalletBalance(connection, reciverPubKey);
+
+  // 送り主の残高を表示
+  console.log(parseInt(senderWalletBalance) / LAMPORTS_PER_SOL);
+  // 受け取り主の残高を表示
+  console.log(parseInt(reciverWalletBalance) / LAMPORTS_PER_SOL);
+}
+
+
+/**
+ * ウォレット残高を取得する
+ * 
+ * @param {*} connection コネクション情報
+ * @param {String} pubkey 公開鍵
+ * @returns ウォレット残高
+ */
+async function getWalletBalance(connection, pubkey) {
   try {
     // 作成したキーペアから残高を取得する
-    const walletBalance = await connection.getBalance(
-      new PublicKey(pubkey)
-    );
-    console.log(`Wallet balance: ${parseInt(walletBalance) / LAMPORTS_PER_SOL} SOL`);
+    return await connection.getBalance(new PublicKey(pubkey));
   } catch (err) {
     console.log(err);
   }
